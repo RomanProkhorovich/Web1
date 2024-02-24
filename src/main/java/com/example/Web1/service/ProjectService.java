@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -16,34 +15,34 @@ public class ProjectService {
     @Autowired
     private JDBCProjectRepository repository;
 
-    public Project create(Project project){
-        try {
+    public Project create(Project project) {
+        return repository.insert(project);
+      /*  try {
             return repository.insert(project);
         }
         catch (DataAccessException ex){
             throw new RuntimeException(ex.getMessage());
-        }
+        }*/
     }
-    public Project update(Project project){
-        try {
-            return repository.update(project);
-        }
-        catch (DataAccessException ex){
-            throw new EntityNotFoundException(ex.getMessage());
-        }
+
+    public Project update(Project project) {
+
+        return repository.update(project);
     }
-    public Project findById(Long id){
+
+    public Project findById(Long id) {
         try {
             return repository.findById(id);
-        }
-        catch (DataAccessException ex){
+        } catch (DataAccessException ex) {
             throw new EntityNotFoundException(ex.getMessage());
         }
     }
-    public List<Project> findAll(){
+
+    public List<Project> findAll() {
         return repository.findAll();
     }
-    public List<Project> findAllByDates(Date startDate, Date endDate){
+
+    public List<Project> findAllByDates(Date startDate, Date endDate) {
         return repository.findAllByDates(startDate, endDate);
     }
 }

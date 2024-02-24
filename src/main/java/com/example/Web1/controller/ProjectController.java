@@ -32,4 +32,8 @@ public class ProjectController {
                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {
         return ResponseEntity.ok(service.findAllByDates(startDate, endDate));
     }
+    @PostMapping
+    public ResponseEntity<Project> create(@RequestBody Project project){
+        return ResponseEntity.ok(service.create(project));
+    }
 }

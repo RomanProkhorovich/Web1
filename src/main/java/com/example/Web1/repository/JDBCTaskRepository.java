@@ -18,11 +18,14 @@ import java.util.List;
 public class JDBCTaskRepository implements RowMapper<Task> {
     private final JdbcTemplate template;
 
-    public List<Task> findByProjectId(Long id){
-        return template.query("select * from task where project_id = " +id, this);
+    public List<Task> findByProjectId(Long id) {
+        return template.query("select * from task where project_id = " + id, this);
     }
-    public void batchInsert(List<Task> taskList){
-        taskList.forEach(x->x.setId(getNextSeqVal()));
+
+    public void batchInsert(List<Task> taskList, Long id) {
+        if (taskList == null)
+            return;
+        taskList.forEach(x -> x.setId(getNextSeqVal()));
         template.batchUpdate("insert into task(id, name, description, final_date, is_ended, project_id)" +
                 " values(?, ?, ?, ?, ?, ?)", new BatchPreparedStatementSetter() {
             @Override
@@ -30,9 +33,11 @@ public class JDBCTaskRepository implements RowMapper<Task> {
                 ps.setLong(1, taskList.get(i).getId());
                 ps.setString(2, taskList.get(i).getName());
                 ps.setString(3, taskList.get(i).getDescription());
-                ps.setDate(4, new java.sql.Date(taskList.get(i).getFinalDate().getTime()));
-                ps.setBoolean(5, taskList.get(i).getIsEnded());
-                ps.setLong(6, taskList.get(i).getProject_id());
+                Date finalDate = taskList.get(i).getFinalDate();
+                ps.setDate(4, finalDate == null ? null : new java.sql.Date(finalDate.getTime()));
+                Boolean isEnded = taskList.get(i).getIsEnded();
+                ps.setBoolean(5, isEnded != null && isEnded.equals(true));
+                ps.setLong(6, id);
             }
 
             @Override
@@ -42,12 +47,14 @@ public class JDBCTaskRepository implements RowMapper<Task> {
         });
     }
 
-    private Long getNextSeqVal(){
+    private Long getNextSeqVal() {
         return template.queryForObject("SELECT nextval('task_seq')", Long.class);
     }
 
     @Override
     public Task mapRow(ResultSet rs, int rowNum) throws SQLException {
+        if (!rs.next())
+            return null;
         Task task = new Task();
         task.setId(rs.getLong("id"));
         task.setName(rs.getString("name"));
